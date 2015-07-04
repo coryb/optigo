@@ -2,7 +2,7 @@ optigo
 =========
 
 [![Build Status](https://travis-ci.org/coryb/optigo.svg?branch=master)](https://travis-ci.org/coryb/optigo)
-[![Coverage Status](https://coveralls.io/repos/coryb/optigo/badge.png)](https://coveralls.io/r/coryb/optigo)
+[![Coverage Status](https://coveralls.io/repos/coryb/optigo/badge.svg?branch=master)](https://coveralls.io/r/coryb/optigo?branch=master)
 [![GoDoc](https://godoc.org/github.com/coryb/optigo?status.png)](https://godoc.org/github.com/coryb/optigo)
 
 **optigo** is a simple command line options parser.  
