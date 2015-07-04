@@ -18,11 +18,11 @@ func ExampleOptionParser() {
 		panic(err)
 	}
 
-	fmt.Printf("verbose: %d\n", op.Results["verbose"])
+	fmt.Printf("results: %v\n", op.Results)
 	fmt.Printf("unparsed args: %v\n", op.Args)
 
 	// Output:
-	// verbose: 3
+	// results: map[verbose:3]
 	// unparsed args: [extra]
 }
 
