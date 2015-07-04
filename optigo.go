@@ -119,7 +119,7 @@ func push(arr reflect.Value, val interface{}) reflect.Value {
 	if rVal.Type() != arr.Type().Elem() {
 		// The value type is not the same as the array value type
 		// so try to convert the passed in value to the array value type
-		newValPtr := reflect.New( arr.Type().Elem() )
+		newValPtr := reflect.New(arr.Type().Elem())
 		newValPtr.Elem().Set(rVal.Convert(arr.Type().Elem()))
 		rVal = newValPtr.Elem()
 	}

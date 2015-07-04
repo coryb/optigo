@@ -205,20 +205,20 @@ Usage: <appname> --help ...
 	}
 
 	stuff := make(map[string]interface{})
-	mapper := func (name string, value interface{}) {
+	mapper := func(name string, value interface{}) {
 		stuff[name] = value
 	}
 
-	list := make([]interface{},0)
-	appender := func (value interface{}) {
+	list := make([]interface{}, 0)
+	appender := func(value interface{}) {
 		list = append(list, value)
 	}
 
 	op := NewDirectAssignParser(map[string]interface{}{
-		"h|help": usage,
-		"o|opt=s": mapper,
+		"h|help":   usage,
+		"o|opt=s":  mapper,
 		"i|item=i": appender,
-		"f|flag": mapper,
+		"f|flag":   mapper,
 		"m|more=s": appender,
 	})
 
@@ -234,7 +234,7 @@ Usage: <appname> --help ...
 	if err := op.ProcessAll(args); err != nil {
 		panic(err)
 	}
-	
+
 	fmt.Printf("stuff[opt] = %s\n", stuff["opt"])
 	fmt.Printf("stuff[flag] = %t\n", stuff["flag"])
 	fmt.Printf("list: %v\n", list)
