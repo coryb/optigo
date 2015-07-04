@@ -98,14 +98,12 @@ func ExampleNewParser() {
 	// bool: true
 }
 
-func printPanic() {
-	if r := recover(); r != nil {
-		fmt.Println(r)
-	}
-}
-
 func ExampleNewParser_nonUnique() {
-	defer printPanic()
+	defer func () {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
 
 	NewParser([]string{
 		"i|inc|increment+",
