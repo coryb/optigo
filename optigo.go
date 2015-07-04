@@ -102,17 +102,28 @@ func parseAction(spec string, dest interface{}, actions map[string]option) error
 		} else {
 			dashName = "--" + opt
 		}
+		if _, ok := actions[dashName]; ok {
+			return fmt.Errorf("invalid option spec: %s is not unique from %s", dashName, spec)
+		}
 		actions[dashName] = option{name, unary, reflect.ValueOf(dest), a, t}
 	}
 	return nil
 }
 
 func increment(val reflect.Value) reflect.Value {
-	return reflect.ValueOf(int(val.Int()) + 1)
+	return reflect.ValueOf(val.Int() + 1)
 }
 
 func push(arr reflect.Value, val interface{}) reflect.Value {
-	return reflect.Append(arr, reflect.ValueOf(val))
+	rVal := reflect.ValueOf(val)
+	if rVal.Type() != arr.Type().Elem() {
+		// The value type is not the same as the array value type
+		// so try to convert the passed in value to the array value type
+		newValPtr := reflect.New( arr.Type().Elem() )
+		newValPtr.Elem().Set(rVal.Convert(arr.Type().Elem()))
+		rVal = newValPtr.Elem()
+	}
+	return reflect.Append(arr, rVal)
 }
 
 func initResultMap(actions actions) map[string]interface{} {
@@ -242,13 +253,16 @@ func (o *OptionParser) ProcessSome(args []string) error {
 				case atASSIGN:
 					if opt.dest.Kind() == reflect.Func {
 						t := reflect.TypeOf(opt.dest.Interface())
+						var cbArgs []reflect.Value
 						if t.NumIn() == 1 {
-							callbackArgs := make([]reflect.Value, 1)
-							callbackArgs[0] = reflect.ValueOf(value)
-							opt.dest.Call(callbackArgs)
-						} else {
-							opt.dest.Call(nil)
+							cbArgs = make([]reflect.Value, 1)
+							cbArgs[0] = reflect.ValueOf(value)
+						} else if t.NumIn() == 2 {
+							cbArgs = make([]reflect.Value, 2)
+							cbArgs[0] = reflect.ValueOf(opt.name)
+							cbArgs[1] = reflect.ValueOf(value)
 						}
+						opt.dest.Call(cbArgs)
 					} else {
 						opt.dest.Elem().Set(reflect.ValueOf(value))
 					}
