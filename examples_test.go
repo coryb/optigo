@@ -104,7 +104,7 @@ func printPanic() {
 	}
 }
 
-func ExampleNewParser_unique_options() {
+func ExampleNewParser_nonUnique() {
 	defer printPanic()
 
 	NewParser([]string{
@@ -247,7 +247,7 @@ Usage: <appname> --help ...
 	// list: [123 more 42]
 }
 
-func ExampleProcessAll_OptionParser() {
+func ExampleOptionParser_ProcessAll() {
 	op := NewParser([]string{
 		"v|verbose+",
 	})
@@ -286,7 +286,7 @@ func ExampleProcessAll_OptionParser() {
 	// Unknown option: --bogus
 }
 
-func ExampleProcessSome_OptionParser() {
+func ExampleOptionParser_ProcessSome() {
 	op := NewParser([]string{
 		"v|verbose+",
 	})
