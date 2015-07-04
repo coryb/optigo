@@ -157,6 +157,11 @@ type OptionParser struct {
 	Args []string
 }
 
+// NewParser generates an OptionParser object from the opts passed in.
+// The opts strings should be in the form of:
+//  alias|alias(+|=s|=i|=f)[@]
+//  Example:
+//  v|verbose+  this will set a "verbose" key in OptionParser.Results with an integer key for how many times the verbose option was repeated on the command line
 func NewParser(opts []string) OptionParser {
 	actions := make(actions)
 	for _, spec := range opts {
