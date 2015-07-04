@@ -164,7 +164,7 @@ func initResultMap(actions actions) map[string]interface{} {
 
 // OptionParser struct will contain the `Results` and `Args` after
 // one of the Process routines is called.  A OptionParser object
-// is created with either NewParser or NewInlineParser
+// is created with either NewParser or NewDirectAssignParser
 type OptionParser struct {
 	actions actions
 	Results map[string]interface{}
