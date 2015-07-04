@@ -153,8 +153,6 @@ func initResultMap(actions actions) map[string]interface{} {
 					results[opt.name] = int64(0)
 				case dtFLOAT:
 					results[opt.name] = float64(0)
-				case dtBOOLEAN:
-					results[opt.name] = false
 				}
 			}
 		}
