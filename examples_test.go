@@ -5,7 +5,6 @@ import (
 )
 
 func ExampleOptionParser() {
-
 	op := NewParser([]string{
 		"v|verbose+",
 	})
@@ -19,20 +18,21 @@ func ExampleOptionParser() {
 		panic(err)
 	}
 
-	// Prints: verbose: 3
 	fmt.Printf("verbose: %d\n", op.Results["verbose"])
-
-	// Prints: unparsed args: [extra]
 	fmt.Printf("unparsed args: %v\n", op.Args)
+
+	// Output:
+	// verbose: 3
+	// unparsed args: [extra]
 }
 
 func ExampleNewParser() {
 	// Note that all values will be stored in OptionParser.Results after a Process function
 	// is called.  The Result key will be stored as the last alias.
 	op := NewParser([]string{
-		// Allow for repeated `-i` or `--inc` or `--increment` options.  Each one of
+		// Allow for repeated `--inc` or `--increment` options.  Each one of
 		// the aliases is repeated the value is incrased by one.
-		"i|inc|increment+",
+		"inc|increment+",
 
 		// Allow for `-S string` or `--string-list string` options.  The string
 		// values will be stored in a slice in order of appearance.
@@ -60,7 +60,7 @@ func ExampleNewParser() {
 	})
 
 	args := []string{
-		"-i",
+		"--inc",
 		"--increment",
 		"-S", "A",
 		"--string-list", "B",
@@ -70,7 +70,7 @@ func ExampleNewParser() {
 		"--float-list", ".2",
 		"-s", "hey",
 		"-i", "42",
-		"-f", "3.141592653589793238462643",
+		"-f", "3.141593",
 		"--bool",
 	}
 
@@ -78,35 +78,48 @@ func ExampleNewParser() {
 		panic(err)
 	}
 
-	// Prints: increment: 2
 	fmt.Printf("increment: %d\n", op.Results["increment"])
-
-	// Prints: string-list: [A B]
 	fmt.Printf("string-list: %v\n", op.Results["string-list"])
-
-	// Prints: int-list: [1 2]
 	fmt.Printf("int-list: %v\n", op.Results["int-list"])
-
-	// Prints: float-list: [0.1 0.2]
 	fmt.Printf("float-list: %v\n", op.Results["float-list"])
-
-	// Prints: string-value: hey
 	fmt.Printf("string-value: %s\n", op.Results["string-value"])
-
-	// Prints: int-value: 42
 	fmt.Printf("int-value: %d\n", op.Results["int-value"])
-
-	// Prints: float-value: 3.141592653589793238462643
 	fmt.Printf("float-value: %f\n", op.Results["float-value"])
-
-	// Prints: bool: true
 	fmt.Printf("bool: %t\n", op.Results["bool"])
+
+	// Output:
+	// increment: 2
+	// string-list: [A B]
+	// int-list: [1 2]
+	// float-list: [0.1 0.2]
+	// string-value: hey
+	// int-value: 42
+	// float-value: 3.141593
+	// bool: true
+}
+
+func printPanic() {
+	if r := recover(); r != nil {
+		fmt.Println(r)
+	}
+}
+
+func ExampleNewParser_unique_options() {
+	defer printPanic()
+
+	NewParser([]string{
+		"i|inc|increment+",
+		"i|int=i",
+	})
+
+	// Output:
+	// invalid option spec: -i is not unique from i|int
 }
 
 func ExampleNewDirectAssignParser() {
-	var increment, intValue int
+	var increment, intValue int64
 	var stringList = make([]string, 0)
-	var intList = make([]int, 0)
+	var intList = make([]int64, 0)
 	var floatList = make([]float32, 0)
 	var stringValue string
 	var floatValue float64
@@ -117,7 +130,7 @@ func ExampleNewDirectAssignParser() {
 	op := NewDirectAssignParser(map[string]interface{}{
 		// Allow for repeated `-i` or `--inc` or `--increment` options.  Each one of
 		// the aliases is repeated the value is incrased by one.
-		"i|inc|increment+": &increment,
+		"inc|increment+": &increment,
 
 		// Allow for `-S string` or `--string-list string` options.  The string
 		// values will be stored in a slice in order of appearance.
@@ -145,7 +158,7 @@ func ExampleNewDirectAssignParser() {
 	})
 
 	args := []string{
-		"-i",
+		"--inc",
 		"--increment",
 		"-S", "A",
 		"--string-list", "B",
@@ -155,7 +168,7 @@ func ExampleNewDirectAssignParser() {
 		"--float-list", ".2",
 		"-s", "hey",
 		"-i", "42",
-		"-f", "3.141592653589793238462643",
+		"-f", "3.141593",
 		"--bool",
 	}
 
@@ -163,32 +176,78 @@ func ExampleNewDirectAssignParser() {
 		panic(err)
 	}
 
-	// Prints: increment: 2
 	fmt.Printf("increment: %d\n", increment)
-
-	// Prints: string-list: [A B]
 	fmt.Printf("string-list: %v\n", stringList)
-
-	// Prints: int-list: [1 2]
 	fmt.Printf("int-list: %v\n", intList)
-
-	// Prints: float-list: [0.1 0.2]
 	fmt.Printf("float-list: %v\n", floatList)
-
-	// Prints: string-value: hey
 	fmt.Printf("string-value: %s\n", stringValue)
-
-	// Prints: int-value: 42
 	fmt.Printf("int-value: %d\n", intValue)
-
-	// Prints: float-value: 3.141592653589793238462643
 	fmt.Printf("float-value: %f\n", floatValue)
-
-	// Prints: bool: true
 	fmt.Printf("bool: %t\n", bool)
+
+	// Output:
+	// increment: 2
+	// string-list: [A B]
+	// int-list: [1 2]
+	// float-list: [0.1 0.2]
+	// string-value: hey
+	// int-value: 42
+	// float-value: 3.141593
+	// bool: true
 }
 
-func ExampleProcessAll() {
+func ExampleNewDirectAssignParser_callbacks() {
+
+	usage := func() {
+		fmt.Println(`
+Usage: <appname> --help ...
+`)
+	}
+
+	stuff := make(map[string]interface{})
+	mapper := func (name string, value interface{}) {
+		stuff[name] = value
+	}
+
+	list := make([]interface{},0)
+	appender := func (value interface{}) {
+		list = append(list, value)
+	}
+
+	op := NewDirectAssignParser(map[string]interface{}{
+		"h|help": usage,
+		"o|opt=s": mapper,
+		"i|item=i": appender,
+		"f|flag": mapper,
+		"m|more=s": appender,
+	})
+
+	args := []string{
+		"-h",
+		"--opt", "value",
+		"-i", "123",
+		"--flag",
+		"-m", "more",
+		"--item", "42",
+	}
+
+	if err := op.ProcessAll(args); err != nil {
+		panic(err)
+	}
+	
+	fmt.Printf("stuff[opt] = %s\n", stuff["opt"])
+	fmt.Printf("stuff[flag] = %t\n", stuff["flag"])
+	fmt.Printf("list: %v\n", list)
+
+	// Output:
+	// Usage: <appname> --help ...
+	//
+	// stuff[opt] = value
+	// stuff[flag] = true
+	// list: [123 more 42]
+}
+
+func ExampleProcessAll_OptionParser() {
 	op := NewParser([]string{
 		"v|verbose+",
 	})
@@ -203,10 +262,7 @@ func ExampleProcessAll() {
 		panic(err)
 	}
 
-	// Prints: verbose: 1
 	fmt.Printf("verbose: %d\n", op.Results["verbose"])
-
-	// Prints: unparsed args: [extra]
 	fmt.Printf("unparsed args: %v\n", op.Args)
 
 	op = NewParser([]string{
@@ -221,11 +277,16 @@ func ExampleProcessAll() {
 
 	// This will error and panic with `Unknown option: --bogus`
 	if err := op.ProcessAll(args); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
+
+	// Output:
+	// verbose: 1
+	// unparsed args: [extra]
+	// Unknown option: --bogus
 }
 
-func ExampleProcessSome() {
+func ExampleProcessSome_OptionParser() {
 	op := NewParser([]string{
 		"v|verbose+",
 	})
@@ -238,12 +299,13 @@ func ExampleProcessSome() {
 
 	// No error on unknown --bogus option
 	if err := op.ProcessSome(args); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
-	// Prints: verbose: 1
 	fmt.Printf("verbose: %d\n", op.Results["verbose"])
-
-	// Prints: unparsed args: [--bogus extra]
 	fmt.Printf("unparsed args: %v\n", op.Args)
+
+	// Output:
+	// verbose: 1
+	// unparsed args: [--bogus extra]
 }
