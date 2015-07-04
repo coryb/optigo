@@ -151,17 +151,18 @@ func initResultMap(actions actions) map[string]interface{} {
 	return results
 }
 
+// OptionParser struct will contain the `Results` and `Args` after
+// one of the Process routines is called.  A OptionParser object
+// is created with either NewParser or NewInlineParser
 type OptionParser struct {
 	actions actions
 	Results map[string]interface{}
-	Args []string
+	Args    []string
 }
 
 // NewParser generates an OptionParser object from the opts passed in.
-// The opts strings should be in the form of:
-//  alias|alias(+|=s|=i|=f)[@]
-//  Example:
-//  v|verbose+  this will set a "verbose" key in OptionParser.Results with an integer key for how many times the verbose option was repeated on the command line
+// After calling OptionParser.Parser([]string) the option results will
+// be stored in OptionParser.Results
 func NewParser(opts []string) OptionParser {
 	actions := make(actions)
 	for _, spec := range opts {
@@ -170,10 +171,13 @@ func NewParser(opts []string) OptionParser {
 		}
 	}
 	results := initResultMap(actions)
-	return OptionParser{actions,results,nil}
+	return OptionParser{actions, results, nil}
 }
 
-func NewInlineParser(opts map[string]interface{}) OptionParser {
+// NewDirectAssignParser generates an OptionParser object from the `opts` passed in.
+// After calling OptionParser.Parser([]string) the options will be assigned directly
+// to the references passed in `opts`.
+func NewDirectAssignParser(opts map[string]interface{}) OptionParser {
 	actions := make(actions)
 	for spec, ref := range opts {
 		if err := parseAction(spec, ref, actions); err != nil {
@@ -183,6 +187,10 @@ func NewInlineParser(opts map[string]interface{}) OptionParser {
 	return OptionParser{actions, nil, nil}
 }
 
+// ProcessAll will parse all arguments in args.  If there are any
+// arguments in args that start with '-' and are not known
+// options then an error will be returned.  Any non-options will
+// be available in OptionParser.Args.
 func (o *OptionParser) ProcessAll(args []string) error {
 	err := o.ProcessSome(args)
 	if err != nil {
@@ -197,8 +205,12 @@ func (o *OptionParser) ProcessAll(args []string) error {
 	return nil
 }
 
+// ProcessSome will parse all known arguments in args.  Any non-options
+// and unknown options will be available in OPtionParser.Args.  This
+// can be used to implement multple pass options parsing, for example
+// perhaps sub-commands options are parsed seperately from global options.
 func (o *OptionParser) ProcessSome(args []string) error {
-	o.Args = make([]string,0)
+	o.Args = make([]string, 0)
 	for len(args) > 0 {
 		if args[0] == "--" {
 			o.Args = append(o.Args, args[1:]...)
@@ -230,8 +242,8 @@ func (o *OptionParser) ProcessSome(args []string) error {
 				case atASSIGN:
 					if opt.dest.Kind() == reflect.Func {
 						t := reflect.TypeOf(opt.dest.Interface())
-						if t.NumIn() == 1 { 
-							callbackArgs := make([]reflect.Value,1)
+						if t.NumIn() == 1 {
+							callbackArgs := make([]reflect.Value, 1)
 							callbackArgs[0] = reflect.ValueOf(value)
 							opt.dest.Call(callbackArgs)
 						} else {
