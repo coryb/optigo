@@ -13,39 +13,39 @@ package main
 import (
 	"fmt"
 	"github.com/coryb/optigo"
-    "os"
+	"os"
 )
 
 func main() {
-     usage := func() {
-        fmt.Printf(`
+	usage := func() {
+		fmt.Println(`
 Usage: optigo-test [-h] [-i INT] [-f FLOAT] [-s STRING] [-m STRING]... [-c]...
 `)
-        os.Exit(0)
-     }    
-     myint := 1
-     myfloat := 1.0
-     mystr := "default"
-     many := make([]string,0)
-     count := 0
+		os.Exit(0)
+	}
 
-     op := optigo.NewDirectAssignParser([]string{
-       "h|help":    usage,
-       "i|int=i":   &myint,
-       "f|float=f": &myfloat,
-       "s|str=s":   &mystr,
-       "m|many=s@": &many,
-       "c|count!":  &count,
-     })
-	  usage := `Naval Fate.
+	myint := 1
+	myfloat := 1.0
+	mystr := "default"
+	many := make([]string, 0)
+	count := 0
 
-      op.ProcessAll(os.Args)
-      
-      fmt.Printf("myint: %i\n", myint)
-      fmt.Printf("myfloat: %n", myfloat)
-      fmt.Printf("mystr: %s\n", mystr)
-      fmt.Printf("many: %v\n", many)
-      fmt.Printf("count: %i\n", count)
+	op := optigo.NewDirectAssignParser(map[string]interface{}{
+		"h|help":    usage,
+		"i|int=i":   &myint,
+		"f|float=f": &myfloat,
+		"s|str=s":   &mystr,
+		"m|many=s@": &many,
+		"c|count!":  &count,
+	})
+
+	op.ProcessAll(os.Args[1:])
+
+	fmt.Printf("myint: %d\n", myint)
+	fmt.Printf("myfloat: %f\n", myfloat)
+	fmt.Printf("mystr: %s\n", mystr)
+	fmt.Printf("many: %v\n", many)
+	fmt.Printf("count: %d\n", count)
 }
 ```
 
