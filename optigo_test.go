@@ -48,7 +48,7 @@ func TestBogusDirectAssignUsage(t *testing.T) {
 	}()
 
 	// when using @ you need to specify a type as well
-	many := make([]string,0)
+	many := make([]string, 0)
 	NewDirectAssignParser(map[string]interface{}{
 		"many@": &many,
 	})
@@ -60,14 +60,14 @@ func TestProcesFailure(t *testing.T) {
 	})
 	// bogus opt with no value
 	args := []string{"--opt"}
-	
+
 	if err := op.ProcessAll(args); err == nil {
 		t.Fail()
 	}
 
 	// bogus opt with string value instead of int
 	args = []string{"--opt", "abc"}
-	
+
 	if err := op.ProcessAll(args); err == nil {
 		t.Fail()
 	}
@@ -78,9 +78,9 @@ func TestDashDash(t *testing.T) {
 	op := NewDirectAssignParser(map[string]interface{}{
 		"foobar": &foobar,
 	})
-	
+
 	args := []string{"--", "--foobar"}
-	
+
 	// this should process fine
 	if err := op.ProcessSome(args); err != nil {
 		t.Fail()
