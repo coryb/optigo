@@ -119,3 +119,8 @@ parsed seperately from global options.
 
 Documentation and examples for optigo are available at
 [GoDoc.org](https://godoc.org/github.com/coryb/optigo).
+
+## Notes
+
+The the option declaration syntax was inspired by the Getopt::Long Perl package, but **optigo** makes no attempt to have complete
+parity with the Getopt::Long functionality.   
