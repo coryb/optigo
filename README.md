@@ -36,7 +36,7 @@ Usage: optigo-test [-h] [-i INT] [-f FLOAT] [-s STRING] [-m STRING]... [-c]...
 		"f|float=f": &myfloat,
 		"s|str=s":   &mystr,
 		"m|many=s@": &many,
-		"c|count!":  &count,
+		"c|count+":  &count,
 	})
 
 	op.ProcessAll(os.Args[1:])
