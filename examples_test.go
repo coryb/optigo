@@ -6,13 +6,13 @@ import (
 	"sort"
 )
 
-func fmtMap(m interface{} ) string {
+func fmtMap(m interface{}) string {
 	mv := reflect.ValueOf(m)
-	keys := make(sort.StringSlice,0)
+	keys := make(sort.StringSlice, 0)
 	for _, v := range mv.MapKeys() {
-		keys = append(keys,v.Interface().(string))
+		keys = append(keys, v.Interface().(string))
 	}
-	str := fmt.Sprintf("%T{", m);
+	str := fmt.Sprintf("%T{", m)
 	sort.Sort(keys)
 	for i := 0; i < len(keys); i++ {
 		if i == 0 {
@@ -23,7 +23,6 @@ func fmtMap(m interface{} ) string {
 	}
 	return str + "}"
 }
-		
 
 func ExampleOptionParser() {
 	op := NewParser([]string{
@@ -125,7 +124,6 @@ func ExampleNewParser() {
 	fmt.Printf("stropt: %s\n", fmtMap(op.Results["stropt"]))
 	fmt.Printf("intopt: %s\n", fmtMap(op.Results["intopt"]))
 	fmt.Printf("fltopt: %s\n", fmtMap(op.Results["fltopt"]))
-	
 
 	// Output:
 	// increment: 2
