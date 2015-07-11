@@ -30,6 +30,7 @@ const (
 	atINCREMENT actionType = iota
 	atAPPEND
 	atASSIGN
+	atMAP
 )
 
 type dataType int
@@ -49,24 +50,44 @@ type option struct {
 	dataType dataType
 }
 
+type keyVal struct {
+	key string
+	val interface{}
+}
+
 func (o *option) parseValue(val string) (interface{}, error) {
+	var keyval keyVal
+	if o.action == atMAP {
+		parts := strings.SplitN(val, "=", 2)
+		val = parts[1]
+		keyval = keyVal{key: parts[0]}
+	}
+
+	var parsed interface{}
 	switch o.dataType {
 	case dtSTRING:
-		return val, nil
+		parsed = val
 	case dtINTEGER:
 		if i, err := strconv.ParseInt(val, 10, 64); err == nil {
-			return i, nil
+			parsed = i
 		} else {
 			return nil, err
 		}
 	case dtFLOAT:
 		if f, err := strconv.ParseFloat(val, 64); err == nil {
-			return f, nil
+			parsed = f
 		} else {
 			return nil, err
 		}
 	default:
 		return nil, fmt.Errorf("Unable to parse value: %s", val)
+	}
+
+	if o.action == atMAP {
+		keyval.val = parsed
+		return keyval, nil
+	} else {
+		return parsed, nil
 	}
 }
 
@@ -83,6 +104,15 @@ func parseAction(spec string, dest interface{}, actions map[string]option) error
 	} else if spec[len(spec)-1] == '@' {
 		a = atAPPEND
 		spec = spec[0 : len(spec)-1]
+	} else if spec[len(spec)-2:] == "[]" {
+		a = atAPPEND
+		spec = spec[0 : len(spec)-2]
+	} else if spec[len(spec)-1] == '%' {
+		a = atMAP
+		spec = spec[0 : len(spec)-1]
+	} else if spec[len(spec)-2:] == "{}" {
+		a = atMAP
+		spec = spec[0 : len(spec)-2]
 	} else {
 		a = atASSIGN
 	}
@@ -161,6 +191,15 @@ func initResultMap(actions actions) map[string]interface{} {
 					results[opt.name] = make([]int64, 0)
 				case dtFLOAT:
 					results[opt.name] = make([]float64, 0)
+				}
+			} else if opt.action == atMAP {
+				switch opt.dataType {
+				case dtSTRING:
+					results[opt.name] = make(map[string]string)
+				case dtINTEGER:
+					results[opt.name] = make(map[string]int64)
+				case dtFLOAT:
+					results[opt.name] = make(map[string]float64)
 				}
 			} else {
 				switch opt.dataType {
@@ -265,6 +304,9 @@ func (o *OptionParser) ProcessSome(args []string) error {
 					opt.dest.Elem().Set(increment(opt.dest.Elem()))
 				case atAPPEND:
 					opt.dest.Elem().Set(push(opt.dest.Elem(), value))
+				case atMAP:
+					kv := value.(keyVal)
+					opt.dest.Elem().SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
 				case atASSIGN:
 					if opt.dest.Kind() == reflect.Func {
 						t := reflect.TypeOf(opt.dest.Interface())
@@ -288,6 +330,9 @@ func (o *OptionParser) ProcessSome(args []string) error {
 					o.Results[opt.name] = increment(reflect.ValueOf(o.Results[opt.name])).Interface()
 				case atAPPEND:
 					o.Results[opt.name] = push(reflect.ValueOf(o.Results[opt.name]), value).Interface()
+				case atMAP:
+					kv := value.(keyVal)
+					reflect.ValueOf(o.Results[opt.name]).SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
 				case atASSIGN:
 					o.Results[opt.name] = reflect.ValueOf(value).Interface()
 				}

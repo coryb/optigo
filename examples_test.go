@@ -2,7 +2,28 @@ package optigo
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
 )
+
+func fmtMap(m interface{} ) string {
+	mv := reflect.ValueOf(m)
+	keys := make(sort.StringSlice,0)
+	for _, v := range mv.MapKeys() {
+		keys = append(keys,v.Interface().(string))
+	}
+	str := fmt.Sprintf("%T{", m);
+	sort.Sort(keys)
+	for i := 0; i < len(keys); i++ {
+		if i == 0 {
+			str += fmt.Sprintf("%#v:%#v", keys[i], mv.MapIndex(reflect.ValueOf(keys[i])).Interface())
+		} else {
+			str += fmt.Sprintf(", %#v:%#v", keys[i], mv.MapIndex(reflect.ValueOf(keys[i])).Interface())
+		}
+	}
+	return str + "}"
+}
+		
 
 func ExampleOptionParser() {
 	op := NewParser([]string{
@@ -46,6 +67,15 @@ func ExampleNewParser() {
 		// will be stored in a slice in order of appearance
 		"F|float-list=f@",
 
+		// Allow for many --stropt key=string
+		"stropt=s%",
+
+		// Allow for many --intopt key=int
+		"intopt=i%",
+
+		// Allow for many --fltopt key=float
+		"fltopt=f%",
+
 		// Allow for `-s string` or `--string-value string`.
 		"s|string-value=s",
 
@@ -72,6 +102,12 @@ func ExampleNewParser() {
 		"-i", "42",
 		"-f", "3.141593",
 		"--bool",
+		"--stropt", "abc=123",
+		"--intopt", "abc=123",
+		"--fltopt", "abc=123",
+		"--stropt", "key=val",
+		"--intopt", "key=42",
+		"--fltopt", "key=1.23",
 	}
 
 	if err := op.ProcessAll(args); err != nil {
@@ -79,23 +115,30 @@ func ExampleNewParser() {
 	}
 
 	fmt.Printf("increment: %d\n", op.Results["increment"])
-	fmt.Printf("string-list: %v\n", op.Results["string-list"])
-	fmt.Printf("int-list: %v\n", op.Results["int-list"])
-	fmt.Printf("float-list: %v\n", op.Results["float-list"])
+	fmt.Printf("string-list: %#v\n", op.Results["string-list"])
+	fmt.Printf("int-list: %#v\n", op.Results["int-list"])
+	fmt.Printf("float-list: %#v\n", op.Results["float-list"])
 	fmt.Printf("string-value: %s\n", op.Results["string-value"])
 	fmt.Printf("int-value: %d\n", op.Results["int-value"])
 	fmt.Printf("float-value: %f\n", op.Results["float-value"])
 	fmt.Printf("bool: %t\n", op.Results["bool"])
+	fmt.Printf("stropt: %s\n", fmtMap(op.Results["stropt"]))
+	fmt.Printf("intopt: %s\n", fmtMap(op.Results["intopt"]))
+	fmt.Printf("fltopt: %s\n", fmtMap(op.Results["fltopt"]))
+	
 
 	// Output:
 	// increment: 2
-	// string-list: [A B]
-	// int-list: [1 2]
-	// float-list: [0.1 0.2]
+	// string-list: []string{"A", "B"}
+	// int-list: []int64{1, 2}
+	// float-list: []float64{0.1, 0.2}
 	// string-value: hey
 	// int-value: 42
 	// float-value: 3.141593
 	// bool: true
+	// stropt: map[string]string{"abc":"123", "key":"val"}
+	// intopt: map[string]int64{"abc":123, "key":42}
+	// fltopt: map[string]float64{"abc":123, "key":1.23}
 }
 
 func ExampleNewParser_nonUnique() {
@@ -119,6 +162,9 @@ func ExampleNewDirectAssignParser() {
 	var stringList = make([]string, 0)
 	var intList = make([]int64, 0)
 	var floatList = make([]float32, 0)
+	var stringMap = make(map[string]string)
+	var intMap = make(map[string]int64)
+	var floatMap = make(map[string]float64)
 	var stringValue string
 	var floatValue float64
 	var bool bool
@@ -132,15 +178,24 @@ func ExampleNewDirectAssignParser() {
 
 		// Allow for `-S string` or `--string-list string` options.  The string
 		// values will be stored in a slice in order of appearance.
-		"S|string-list=s@": &stringList,
+		"S|string-list=s[]": &stringList,
 
 		// Allow for `-I 123` or `--int-list 123` options.  The int values will
 		// be stored in a slice in order of appearance
-		"I|int-list=i@": &intList,
+		"I|int-list=i[]": &intList,
 
 		// Allow for `-F 1.23` or `--float-list 1.23` options.  The float values
 		// will be stored in a slice in order of appearance
-		"F|float-list=f@": &floatList,
+		"F|float-list=f[]": &floatList,
+
+		// Allow for many --stropt key=string
+		"stropt=s{}": &stringMap,
+
+		// Allow for many --intopt key=int
+		"intopt=i{}": &intMap,
+
+		// Allow for many --fltopt key=float
+		"fltopt=f{}": &floatMap,
 
 		// Allow for `-s string` or `--string-value string`.
 		"s|string-value=s": &stringValue,
@@ -168,6 +223,12 @@ func ExampleNewDirectAssignParser() {
 		"-i", "42",
 		"-f", "3.141593",
 		"--bool",
+		"--stropt", "abc=123",
+		"--intopt", "abc=123",
+		"--fltopt", "abc=123",
+		"--stropt", "key=val",
+		"--intopt", "key=42",
+		"--fltopt", "key=1.23",
 	}
 
 	if err := op.ProcessAll(args); err != nil {
@@ -182,6 +243,9 @@ func ExampleNewDirectAssignParser() {
 	fmt.Printf("int-value: %d\n", intValue)
 	fmt.Printf("float-value: %f\n", floatValue)
 	fmt.Printf("bool: %t\n", bool)
+	fmt.Printf("stropt: %s\n", fmtMap(stringMap))
+	fmt.Printf("intopt: %s\n", fmtMap(intMap))
+	fmt.Printf("fltopt: %s\n", fmtMap(floatMap))
 
 	// Output:
 	// increment: 2
@@ -192,6 +256,9 @@ func ExampleNewDirectAssignParser() {
 	// int-value: 42
 	// float-value: 3.141593
 	// bool: true
+	// stropt: map[string]string{"abc":"123", "key":"val"}
+	// intopt: map[string]int64{"abc":123, "key":42}
+	// fltopt: map[string]float64{"abc":123, "key":1.23}
 }
 
 func ExampleNewDirectAssignParser_callbacks() {

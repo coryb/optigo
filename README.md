@@ -28,15 +28,17 @@ Usage: optigo-test [-h] [-i INT] [-f FLOAT] [-s STRING] [-m STRING]... [-c]...
 	myfloat := 1.0
 	mystr := "default"
 	many := make([]string, 0)
+	options := make(map[string]string)
 	count := 0
 
 	op := optigo.NewDirectAssignParser(map[string]interface{}{
-		"h|help":    usage,
-		"i|int=i":   &myint,
-		"f|float=f": &myfloat,
-		"s|str=s":   &mystr,
-		"m|many=s@": &many,
-		"c|count+":  &count,
+		"h|help":       usage,
+		"i|int=i":      &myint,
+		"f|float=f":    &myfloat,
+		"s|str=s":      &mystr,
+		"m|many=s@":    &many,
+		"c|count+":     &count,
+		"o|options=s%": &options,
 	})
 
 	op.ProcessAll(os.Args[1:])
@@ -46,6 +48,7 @@ Usage: optigo-test [-h] [-i INT] [-f FLOAT] [-s STRING] [-m STRING]... [-c]...
 	fmt.Printf("mystr: %s\n", mystr)
 	fmt.Printf("many: %v\n", many)
 	fmt.Printf("count: %d\n", count)
+	fmt.Printf("options: %v\n", options)
 }
 ```
 
