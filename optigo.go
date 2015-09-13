@@ -283,7 +283,6 @@ func (o *OptionParser) ProcessSome(args []string) error {
 			return nil
 		}
 
-		
 		var err error
 		if opt, ok := o.actions[args[0]]; ok {
 			var value interface{}
