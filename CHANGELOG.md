@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3 - 2015-09-12
+
+* allow for --foobar=123 options (ie dont require space between option and value) [Cory Bennett] [[e9fdaf8](https://github.com/coryb/optigo/commit/e9fdaf8)]
+
 ## 0.0.2 - 2015-07-11
 
 * add support for --opt key=val where you can build a map of option key pairs.  Syntax like "opt=s%" or "opt=s{}" [Cory Bennett] [[0167929](https://github.com/coryb/optigo/commit/0167929)]
