@@ -282,9 +282,11 @@ func (o *OptionParser) ProcessSome(args []string) error {
 			o.Args = append(o.Args, args[1:]...)
 			return nil
 		}
+
+		
+		var err error
 		if opt, ok := o.actions[args[0]]; ok {
 			var value interface{}
-			var err error
 			if opt.unary {
 				value = true
 				args = args[1:]
@@ -298,50 +300,81 @@ func (o *OptionParser) ProcessSome(args []string) error {
 				}
 				args = args[2:]
 			}
-
-			if opt.dest.IsValid() {
-				switch opt.action {
-				case atINCREMENT:
-					opt.dest.Elem().Set(increment(opt.dest.Elem()))
-				case atAPPEND:
-					opt.dest.Elem().Set(push(opt.dest.Elem(), value))
-				case atMAP:
-					kv := value.(keyVal)
-					opt.dest.Elem().SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
-				case atASSIGN:
-					if opt.dest.Kind() == reflect.Func {
-						t := reflect.TypeOf(opt.dest.Interface())
-						var cbArgs []reflect.Value
-						if t.NumIn() == 1 {
-							cbArgs = make([]reflect.Value, 1)
-							cbArgs[0] = reflect.ValueOf(value)
-						} else if t.NumIn() == 2 {
-							cbArgs = make([]reflect.Value, 2)
-							cbArgs[0] = reflect.ValueOf(opt.name)
-							cbArgs[1] = reflect.ValueOf(value)
-						}
-						opt.dest.Call(cbArgs)
-					} else {
-						opt.dest.Elem().Set(reflect.ValueOf(value))
+			o.setParsedOption(opt, value)
+		} else {
+			if args[0][0] == '-' {
+				var arg, val string
+				if args[0][1] != '-' {
+					arg = args[0][0:2]
+					val = args[0][2:]
+				} else {
+					ix := strings.Index(args[0], "=")
+					if ix != -1 {
+						arg = args[0][0:ix]
+						val = args[0][ix+1:]
 					}
 				}
-			} else {
-				switch opt.action {
-				case atINCREMENT:
-					o.Results[opt.name] = increment(reflect.ValueOf(o.Results[opt.name])).Interface()
-				case atAPPEND:
-					o.Results[opt.name] = push(reflect.ValueOf(o.Results[opt.name]), value).Interface()
-				case atMAP:
-					kv := value.(keyVal)
-					reflect.ValueOf(o.Results[opt.name]).SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
-				case atASSIGN:
-					o.Results[opt.name] = reflect.ValueOf(value).Interface()
+				if opt, ok := o.actions[arg]; ok {
+					var value interface{} = true
+					if len(val) <= 0 {
+						return fmt.Errorf("missing argument value for option: --%s", opt.name)
+					} else {
+						if value, err = opt.parseValue(val); err != nil {
+							return err
+						}
+					}
+					o.setParsedOption(opt, value)
+				} else {
+					o.Args = append(o.Args, args[0])
 				}
+				args = args[1:]
+			} else {
+				o.Args = append(o.Args, args[0])
+				args = args[1:]
 			}
-		} else {
-			o.Args = append(o.Args, args[0])
-			args = args[1:]
 		}
 	}
 	return nil
+}
+
+func (o *OptionParser) setParsedOption(opt option, value interface{}) {
+	if opt.dest.IsValid() {
+		switch opt.action {
+		case atINCREMENT:
+			opt.dest.Elem().Set(increment(opt.dest.Elem()))
+		case atAPPEND:
+			opt.dest.Elem().Set(push(opt.dest.Elem(), value))
+		case atMAP:
+			kv := value.(keyVal)
+			opt.dest.Elem().SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
+		case atASSIGN:
+			if opt.dest.Kind() == reflect.Func {
+				t := reflect.TypeOf(opt.dest.Interface())
+				var cbArgs []reflect.Value
+				if t.NumIn() == 1 {
+					cbArgs = make([]reflect.Value, 1)
+					cbArgs[0] = reflect.ValueOf(value)
+				} else if t.NumIn() == 2 {
+					cbArgs = make([]reflect.Value, 2)
+					cbArgs[0] = reflect.ValueOf(opt.name)
+					cbArgs[1] = reflect.ValueOf(value)
+				}
+				opt.dest.Call(cbArgs)
+			} else {
+				opt.dest.Elem().Set(reflect.ValueOf(value))
+			}
+		}
+	} else {
+		switch opt.action {
+		case atINCREMENT:
+			o.Results[opt.name] = increment(reflect.ValueOf(o.Results[opt.name])).Interface()
+		case atAPPEND:
+			o.Results[opt.name] = push(reflect.ValueOf(o.Results[opt.name]), value).Interface()
+		case atMAP:
+			kv := value.(keyVal)
+			reflect.ValueOf(o.Results[opt.name]).SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
+		case atASSIGN:
+			o.Results[opt.name] = reflect.ValueOf(value).Interface()
+		}
+	}
 }

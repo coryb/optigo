@@ -101,3 +101,31 @@ func TestDashDash(t *testing.T) {
 	}
 
 }
+
+func TestSingleOptionNoArg(t *testing.T) {
+	var foobar int64
+	op := NewDirectAssignParser(map[string]interface{}{
+		"foobar=i": &foobar,
+	})
+
+	args := []string{"--foobar="}
+
+	// this should fail to process, missing argument
+	if err := op.ProcessAll(args); err == nil {
+		t.Fail()
+	}
+}
+
+func TestSingleOptionInvalidArg(t *testing.T) {
+	var foobar int64
+	op := NewDirectAssignParser(map[string]interface{}{
+		"foobar=i": &foobar,
+	})
+
+	args := []string{"--foobar=abc"}
+
+	// this should fail to process, invalid argument
+	if err := op.ProcessAll(args); err == nil {
+		t.Fail()
+	}
+}

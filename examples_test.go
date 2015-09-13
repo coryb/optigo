@@ -139,6 +139,85 @@ func ExampleNewParser() {
 	// fltopt: map[string]float64{"abc":123, "key":1.23}
 }
 
+func ExampleNewParser_NoSpace() {
+	// Note that all values will be stored in OptionParser.Results after a Process function
+	// is called.  The Result key will be stored as the last alias.
+	op := NewParser([]string{
+		// Allow for `-S string` or `--string-list string` options.  The string
+		// values will be stored in a slice in order of appearance.
+		"S|string-list=s@",
+
+		// Allow for `-I 123` or `--int-list 123` options.  The int values will
+		// be stored in a slice in order of appearance
+		"I|int-list=i@",
+
+		// Allow for `-F 1.23` or `--float-list 1.23` options.  The float values
+		// will be stored in a slice in order of appearance
+		"F|float-list=f@",
+
+		// Allow for many --stropt key=string
+		"stropt=s%",
+
+		// Allow for many --intopt key=int
+		"intopt=i%",
+
+		// Allow for many --fltopt key=float
+		"fltopt=f%",
+
+		// Allow for `-s string` or `--string-value string`.
+		"s|string-value=s",
+
+		// Allow for `-i 123` or `--int-value 123`.
+		"i|int-value=i",
+
+		// Allow for `-f 1.23` or `--float-value 1.23`.
+		"f|float-value=f",
+	})
+
+	args := []string{
+		"-SA",
+		"--string-list=B",
+		"-I1",
+		"--int-list=2",
+		"-F.1",
+		"--float-list=.2",
+		"-shey",
+		"-i42",
+		"-f3.141593",
+		"--stropt=abc=123",
+		"--intopt=abc=123",
+		"--fltopt=abc=123",
+		"--stropt=key=val",
+		"--intopt=key=42",
+		"--fltopt=key=1.23",
+	}
+
+	if err := op.ProcessAll(args); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("string-list: %#v\n", op.Results["string-list"])
+	fmt.Printf("int-list: %#v\n", op.Results["int-list"])
+	fmt.Printf("float-list: %#v\n", op.Results["float-list"])
+	fmt.Printf("string-value: %s\n", op.Results["string-value"])
+	fmt.Printf("int-value: %d\n", op.Results["int-value"])
+	fmt.Printf("float-value: %f\n", op.Results["float-value"])
+	fmt.Printf("stropt: %s\n", fmtMap(op.Results["stropt"]))
+	fmt.Printf("intopt: %s\n", fmtMap(op.Results["intopt"]))
+	fmt.Printf("fltopt: %s\n", fmtMap(op.Results["fltopt"]))
+
+	// Output:
+	// string-list: []string{"A", "B"}
+	// int-list: []int64{1, 2}
+	// float-list: []float64{0.1, 0.2}
+	// string-value: hey
+	// int-value: 42
+	// float-value: 3.141593
+	// stropt: map[string]string{"abc":"123", "key":"val"}
+	// intopt: map[string]int64{"abc":123, "key":42}
+	// fltopt: map[string]float64{"abc":123, "key":1.23}
+}
+
 func ExampleNewParser_nonUnique() {
 	defer func() {
 		if r := recover(); r != nil {
