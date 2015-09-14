@@ -338,28 +338,28 @@ func (o *OptionParser) ProcessSome(args []string) error {
 
 func (o *OptionParser) setParsedOption(opt option, value interface{}) {
 	if opt.dest.IsValid() {
-		switch opt.action {
-		case atINCREMENT:
-			opt.dest.Elem().Set(increment(opt.dest.Elem()))
-		case atAPPEND:
-			opt.dest.Elem().Set(push(opt.dest.Elem(), value))
-		case atMAP:
-			kv := value.(keyVal)
-			opt.dest.Elem().SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
-		case atASSIGN:
-			if opt.dest.Kind() == reflect.Func {
-				t := reflect.TypeOf(opt.dest.Interface())
-				var cbArgs []reflect.Value
-				if t.NumIn() == 1 {
-					cbArgs = make([]reflect.Value, 1)
-					cbArgs[0] = reflect.ValueOf(value)
-				} else if t.NumIn() == 2 {
-					cbArgs = make([]reflect.Value, 2)
-					cbArgs[0] = reflect.ValueOf(opt.name)
-					cbArgs[1] = reflect.ValueOf(value)
-				}
-				opt.dest.Call(cbArgs)
-			} else {
+		if opt.dest.Kind() == reflect.Func {
+			t := reflect.TypeOf(opt.dest.Interface())
+			var cbArgs []reflect.Value
+			if t.NumIn() == 1 {
+				cbArgs = make([]reflect.Value, 1)
+				cbArgs[0] = reflect.ValueOf(value)
+			} else if t.NumIn() == 2 {
+				cbArgs = make([]reflect.Value, 2)
+				cbArgs[0] = reflect.ValueOf(opt.name)
+				cbArgs[1] = reflect.ValueOf(value)
+			}
+			opt.dest.Call(cbArgs)
+		} else {
+			switch opt.action {
+			case atINCREMENT:
+				opt.dest.Elem().Set(increment(opt.dest.Elem()))
+			case atAPPEND:
+				opt.dest.Elem().Set(push(opt.dest.Elem(), value))
+			case atMAP:
+				kv := value.(keyVal)
+				opt.dest.Elem().SetMapIndex(reflect.ValueOf(kv.key), reflect.ValueOf(kv.val))
+			case atASSIGN:
 				opt.dest.Elem().Set(reflect.ValueOf(value))
 			}
 		}
