@@ -174,47 +174,55 @@ func push(arr reflect.Value, val interface{}) reflect.Value {
 	return reflect.Append(arr, rVal)
 }
 
-func initResultMap(actions actions) map[string]interface{} {
-	results := make(map[string]interface{})
-	for _, opt := range actions {
+func (o *OptionParser) initResultKey(key string, dflt interface{}) {
+	if _, ok := o.Results[key]; ok {
+		return
+	}
+	o.Results[key] = dflt;
+}
+
+func (o *OptionParser) initResultMap() {
+	if o.Results == nil {
+		return
+	}
+	for _, opt := range o.actions {
 		if opt.unary {
 			if opt.action == atINCREMENT {
-				results[opt.name] = int64(0)
+				o.initResultKey(opt.name, int64(0))
 			} else {
-				results[opt.name] = false
+				o.initResultKey(opt.name, false)
 			}
 		} else {
 			if opt.action == atAPPEND {
 				switch opt.dataType {
 				case dtSTRING:
-					results[opt.name] = make([]string, 0)
+					o.initResultKey(opt.name, make([]string, 0))
 				case dtINTEGER:
-					results[opt.name] = make([]int64, 0)
+					o.initResultKey(opt.name, make([]int64, 0))
 				case dtFLOAT:
-					results[opt.name] = make([]float64, 0)
+					o.initResultKey(opt.name, make([]float64, 0))
 				}
 			} else if opt.action == atMAP {
 				switch opt.dataType {
 				case dtSTRING:
-					results[opt.name] = make(map[string]string)
+					o.initResultKey(opt.name, make(map[string]string))
 				case dtINTEGER:
-					results[opt.name] = make(map[string]int64)
+					o.initResultKey(opt.name, make(map[string]int64))
 				case dtFLOAT:
-					results[opt.name] = make(map[string]float64)
+					o.initResultKey(opt.name, make(map[string]float64))
 				}
 			} else {
 				switch opt.dataType {
 				case dtSTRING:
-					results[opt.name] = ""
+					o.initResultKey(opt.name, "")
 				case dtINTEGER:
-					results[opt.name] = int64(0)
+					o.initResultKey(opt.name, int64(0))
 				case dtFLOAT:
-					results[opt.name] = float64(0)
+					o.initResultKey(opt.name, float64(0))
 				}
 			}
 		}
 	}
-	return results
 }
 
 // OptionParser struct will contain the `Results` and `Args` after
@@ -236,7 +244,7 @@ func NewParser(opts []string) OptionParser {
 			panic(err)
 		}
 	}
-	results := initResultMap(actions)
+	results := make(map[string]interface{})
 	return OptionParser{actions, results, nil}
 }
 
@@ -276,6 +284,7 @@ func (o *OptionParser) ProcessAll(args []string) error {
 // can be used to implement multple pass options parsing, for example
 // perhaps sub-commands options are parsed seperately from global options.
 func (o *OptionParser) ProcessSome(args []string) error {
+	o.initResultMap()
 	o.Args = make([]string, 0)
 	for len(args) > 0 {
 		if args[0] == "--" {

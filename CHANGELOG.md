@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.4 - 2015-09-14
+
+* allow function callbacks for all assignment types (increment, map, append) [Cory Bennett] [[1b53172](https://github.com/coryb/optigo/commit/1b53172)]
+
 ## 0.0.3 - 2015-09-12
 
 * allow for --foobar=123 options (ie dont require space between option and value) [Cory Bennett] [[e9fdaf8](https://github.com/coryb/optigo/commit/e9fdaf8)]
