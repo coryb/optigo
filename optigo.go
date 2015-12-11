@@ -178,7 +178,7 @@ func (o *OptionParser) initResultKey(key string, dflt interface{}) {
 	if _, ok := o.Results[key]; ok {
 		return
 	}
-	o.Results[key] = dflt;
+	o.Results[key] = dflt
 }
 
 func (o *OptionParser) initResultMap() {
