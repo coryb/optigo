@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.5 - 2015-12-10
+
+* allow setting OptionParser.Results for defaults, only initialize missing elements [Cory Bennett] [[24e37c7](https://github.com/coryb/optigo/commit/24e37c7)]
+
 ## 0.0.4 - 2015-09-14
 
 * allow function callbacks for all assignment types (increment, map, append) [Cory Bennett] [[1b53172](https://github.com/coryb/optigo/commit/1b53172)]
