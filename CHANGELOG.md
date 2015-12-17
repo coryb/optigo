@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.5 - 2015-12-16
+## 0.0.6 - 2015-12-16
 
 * Dont default all options into the Result unless that option is used.  This allows us to tell the difference between a default option and one not set. [Cory Bennett] [[b3baac6](https://github.com/coryb/optigo/commit/b3baac6)]
 * allow setting OptionParser.Results for defaults, only initialize missing elements [Cory Bennett] [[24e37c7](https://github.com/coryb/optigo/commit/24e37c7)]
