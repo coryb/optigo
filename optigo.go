@@ -56,6 +56,12 @@ type keyVal struct {
 	val interface{}
 }
 
+type dashDash struct {}
+
+func (e *dashDash) Error() string {
+	return "found -- in arguments"
+}
+
 func (o *option) parseValue(val string) (interface{}, error) {
 	var keyval keyVal
 	if o.action == atMAP {
@@ -259,7 +265,10 @@ func NewDirectAssignParser(opts map[string]interface{}) OptionParser {
 // options then an error will be returned.  Any non-options will
 // be available in OptionParser.Args.
 func (o *OptionParser) ProcessAll(args []string) error {
-	err := o.ProcessSome(args)
+	err := o.processSome(args)
+	if _, ok := err.(*dashDash); ok {
+		return nil
+	}
 	if err != nil {
 		return err
 	} else {
@@ -277,11 +286,22 @@ func (o *OptionParser) ProcessAll(args []string) error {
 // can be used to implement multple pass options parsing, for example
 // perhaps sub-commands options are parsed seperately from global options.
 func (o *OptionParser) ProcessSome(args []string) error {
+	err := o.processSome(args)
+	if _, ok := err.(*dashDash); ok {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *OptionParser) processSome(args []string) error {
 	o.Args = make([]string, 0)
 	for len(args) > 0 {
 		if args[0] == "--" {
 			o.Args = append(o.Args, args[1:]...)
-			return nil
+			return &dashDash{}
 		}
 
 		var err error
