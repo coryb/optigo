@@ -56,7 +56,7 @@ type keyVal struct {
 	val interface{}
 }
 
-type dashDash struct {}
+type dashDash struct{}
 
 func (e *dashDash) Error() string {
 	return "found -- in arguments"
@@ -200,7 +200,7 @@ func (o *OptionParser) initResultKey(opt *option) {
 				dflt = make([]int64, 0)
 			case dtFLOAT:
 				dflt = make([]float64, 0)
-				}
+			}
 		} else if opt.action == atMAP {
 			switch opt.dataType {
 			case dtSTRING:
@@ -273,7 +273,7 @@ func (o *OptionParser) ProcessAll(args []string) error {
 		return err
 	} else {
 		for _, opt := range o.Args {
-			if opt[0] == '-' {
+			if len(opt) > 0 && opt[0] == '-' {
 				return fmt.Errorf("Unknown option: %s", opt)
 			}
 		}
@@ -322,7 +322,7 @@ func (o *OptionParser) processSome(args []string) error {
 			}
 			o.setParsedOption(opt, value)
 		} else {
-			if args[0][0] == '-' {
+			if len(args[0]) > 0 && args[0][0] == '-' {
 				var arg, val string
 				if args[0][1] != '-' {
 					arg = args[0][0:2]
